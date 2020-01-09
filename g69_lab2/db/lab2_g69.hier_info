@@ -1,0 +1,19 @@
+|g69_counter_lab2
+enable => counting[3].ENA
+enable => counting[2].ENA
+enable => counting[1].ENA
+enable => counting[0].ENA
+reset => counting[0].ACLR
+reset => counting[1].ACLR
+reset => counting[2].ACLR
+reset => counting[3].ACLR
+clk => counting[0].CLK
+clk => counting[1].CLK
+clk => counting[2].CLK
+clk => counting[3].CLK
+count[0] <= counting[0].DB_MAX_OUTPUT_PORT_TYPE
+count[1] <= counting[1].DB_MAX_OUTPUT_PORT_TYPE
+count[2] <= counting[2].DB_MAX_OUTPUT_PORT_TYPE
+count[3] <= counting[3].DB_MAX_OUTPUT_PORT_TYPE
+
+

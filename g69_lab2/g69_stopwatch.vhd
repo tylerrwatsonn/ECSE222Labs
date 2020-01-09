@@ -1,0 +1,176 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+ 
+entity g69_stopwatch is
+        Port (
+                start       : in std_logic;
+                stop        : in std_logic;
+                reset       : in std_logic;
+                clk    		 : in std_logic;
+                HEX0        : out std_logic_vector(6 downto 0);
+                HEX1        : out std_logic_vector(6 downto 0);
+                HEX2        : out std_logic_vector(6 downto 0);
+                HEX3        : out std_logic_vector(6 downto 0);
+                HEX4        : out std_logic_vector(6 downto 0);
+                HEX5        : out std_logic_vector(6 downto 0)
+        );
+end g69_stopwatch;
+
+architecture a of g69_stopwatch is
+ 
+    component g69_7_segment_decoder is
+        port(
+            code            : in std_logic_vector(3 downto 0);
+            segments        : out std_logic_vector(6 downto 0)
+        );
+    end component g69_7_segment_decoder;
+    
+
+    component g69_counter_lab2 is
+        Port (
+                enable  : in std_logic;
+                reset   : in std_logic;
+                clk     : in std_logic;
+                count   : out std_logic_vector(3 downto 0)
+        );
+    end component g69_counter_lab2;
+    
+    component clock_divider is
+        Port (
+                enable  : in std_logic;
+                reset   : in std_logic;
+                clk     : in std_logic;
+                en_out  : out std_logic
+        );      
+    end component clock_divider;
+    
+    signal HEX0UNDECODED       :  std_logic_vector (3 downto 0); 
+    signal HEX1UNDECODED       :  std_logic_vector (3 downto 0); 
+    signal HEX2UNDECODED       :  std_logic_vector (3 downto 0); 
+    signal HEX3UNDECODED       :  std_logic_vector (3 downto 0); 
+    signal HEX4UNDECODED       :  std_logic_vector (3 downto 0); 
+    signal HEX5UNDECODED       :  std_logic_vector (3 downto 0); 
+    
+    signal enable_0             : std_logic;
+    signal enable_1             : std_logic;
+    signal enable_2             : std_logic;
+    signal enable_3             : std_logic;
+    signal enable_4             : std_logic;
+    signal enable_5             : std_logic;
+    
+    signal reset_0                  : std_logic;
+    signal reset_1                  : std_logic;
+    signal reset_2                  : std_logic;
+    signal reset_3                  : std_logic;
+    signal reset_4                  : std_logic;
+    signal reset_5                  : std_logic;
+	 
+    signal hundredth_state : std_logic;
+    signal stopwatch_state: std_logic := '0';
+
+begin	  
+		  Clock_Divider_0: clock_divider PORT MAP(enable => start, reset => reset, clk => clk, en_out => enable_0);
+ 
+        Counter_0: g69_counter_lab2 PORT MAP(enable  => hundredth_state, reset => reset_0, clk => clk, count => HEX0UNDECODED(3 downto 0));
+        Counter_1: g69_counter_lab2 PORT MAP(enable  => enable_1, reset => reset_1, clk => clk, count => HEX1UNDECODED(3 downto 0));
+        Counter_2: g69_counter_lab2 PORT MAP(enable  => enable_2, reset => reset_2, clk => clk, count => HEX2UNDECODED(3 downto 0));
+        Counter_3: g69_counter_lab2 PORT MAP(enable  => enable_3, reset => reset_3, clk => clk, count => HEX3UNDECODED(3 downto 0));
+        Counter_4: g69_counter_lab2 PORT MAP(enable  => enable_4, reset => reset_4, clk => clk, count => HEX4UNDECODED(3 downto 0));
+        Counter_5: g69_counter_lab2 PORT MAP(enable  => enable_5, reset => reset_5, clk => clk, count => HEX5UNDECODED(3 downto 0));
+        
+       
+        decoder_0: g69_7_segment_decoder PORT MAP(code => HEX0UNDECODED(3 downto 0), segments => HEX0(6 downto 0));
+        decoder_1: g69_7_segment_decoder PORT MAP(code => HEX1UNDECODED(3 downto 0), segments => HEX1(6 downto 0));
+        decoder_2: g69_7_segment_decoder PORT MAP(code => HEX2UNDECODED(3 downto 0), segments => HEX2(6 downto 0));
+        decoder_3: g69_7_segment_decoder PORT MAP(code => HEX3UNDECODED(3 downto 0), segments => HEX3(6 downto 0));
+        decoder_4: g69_7_segment_decoder PORT MAP(code => HEX4UNDECODED(3 downto 0), segments => HEX4(6 downto 0));
+        decoder_5: g69_7_segment_decoder PORT MAP(code => HEX5UNDECODED(3 downto 0), segments => HEX5(6 downto 0));
+		 
+		 
+    process(start,stop,reset,clk)
+    begin
+			if(start = '0' and stop='1') then
+				stopwatch_state <= '1';
+				end if;
+				
+			if((stop ='0' or reset='0') and start='1') then
+				stopwatch_state <= '0';
+			end if;
+			
+			
+			if(enable_0 ='0' and stopwatch_state='1') then 
+				hundredth_state <= '1';
+			else 
+				hundredth_state <= '0';
+				
+			end if;
+			
+			if(stopwatch_state = '1' and enable_0='1' and HEX0UNDECODED="1001") then
+				enable_1 <= '1';
+			else 
+				enable_1 <= '0';
+			end if;
+			
+			if(stopwatch_state = '1' and enable_1='1' and HEX1UNDECODED="1001") then
+				enable_2 <= '1';
+			else 
+				enable_2 <= '0';
+			end if;
+			
+			if(stopwatch_state = '1' and enable_2='1' and HEX2UNDECODED="1001") then
+				enable_3 <= '1';
+			else 
+				enable_3 <= '0';
+			end if;
+			
+			if(stopwatch_state = '1' and enable_3='1' and HEX3UNDECODED="0101") then
+				enable_4 <= '1';
+			else 
+				enable_4 <= '0';
+			end if;
+			
+			if(stopwatch_state = '1' and enable_4='1' and HEX4UNDECODED="1001") then
+				enable_5 <= '1';
+			else 
+				enable_5 <= '0';
+			end if;
+			
+				 
+        if (HEX0UNDECODED = "1010" or reset = '0') 
+            then reset_0 <= '0';
+        else
+            reset_0 <= '1';
+        end if;
+        
+        if (HEX1UNDECODED = "1010" or reset = '0') then 
+            reset_1 <= '0';
+        else
+            reset_1 <= '1';
+        end if;
+        
+        if (HEX2UNDECODED = "1010" or reset = '0') then 
+            reset_2 <= '0';
+        else
+            reset_2 <= '1';
+        end if;
+        
+        if (HEX3UNDECODED = "0110" or reset = '0') then 
+            reset_3 <= '0';
+        else
+            reset_3 <= '1';
+        end if;
+        
+        if (HEX4UNDECODED = "1010" or reset = '0') then 
+            reset_4 <= '0';
+        else
+            reset_4 <= '1';
+        end if;
+        
+        if (HEX5UNDECODED = "0110" or reset = '0') then 
+            reset_5 <= '0';
+        else
+            reset_5 <= '1';
+        end if;
+    end process;
+end a;
